@@ -534,6 +534,7 @@ func TestSortedSet(t *testing.T) {
         }
     }
 
+    //count
     card, err := client.Zcard("zs")
     if err != nil {
         t.Fatal("zcard failed" + err.Error())
@@ -541,6 +542,22 @@ func TestSortedSet(t *testing.T) {
     if card != 5 {
         t.Fatal("zcard failed", card)
     }
+    count, err:= client.Zcount("zs", float64(0), float64(2))
+    if err != nil {
+        t.Fatal("zcount failed" + err.Error())
+    }
+    if count != 3 {
+        t.Fatal("zcount failed", count)
+    }
+
+    countAll, err:= client.ZcountAll("zs")
+    if err != nil {
+        t.Fatal("zcountall failed" + err.Error())
+    }
+    if countAll != 5 {
+        t.Fatal("zcountall failed", countAll)
+    }
+
     for i := 0; i <= 4; i++ {
         data, _ := client.Zrange("zs", 0, i)
         if !reflect.DeepEqual(data, vals[0:i+1]) {
@@ -553,6 +570,7 @@ func TestSortedSet(t *testing.T) {
             t.Fatal("zrangebyscore failed")
         }
     }
+    
     //incremement
     for i := 0; i <= 4; i++ {
         client.Zincrby("zs", vals[i], 1)
