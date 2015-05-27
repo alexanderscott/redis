@@ -517,10 +517,14 @@ func verifyHash(t *testing.T, key string, expected map[string][]byte) {
 
 func TestSortedSet(t *testing.T) {
     svals := []string{"a", "b", "c", "d", "e"}
+    svalsInverse := []string{"e", "d", "c", "b", "a"}
     ranks := []float64{0.0, 1.0, 2.0, 3.0, 4.0}
     vals := make([][]byte, len(svals))
+    valsInverse := make([][]byte, len(svalsInverse))
+
     for i := 0; i < len(svals); i++ {
         vals[i] = []byte(svals[i])
+        valsInverse[i] = []byte(svalsInverse[i])
         _, err := client.Zadd("zs", vals[i], ranks[i])
         if err != nil {
             t.Fatal("zdd failed" + err.Error())
@@ -546,13 +550,24 @@ func TestSortedSet(t *testing.T) {
         if !reflect.DeepEqual(data, vals[0:i+1]) {
             t.Fatal("zrange failed")
         }
+
+        revData, _ := client.Zrevrange("zs", 0, i)
+        if !reflect.DeepEqual(revData, valsInverse[0:i+1]) {
+            t.Fatal("zrevrange failed")
+        }
     }
+
     for i := 0; i <= 4; i++ {
         data, _ := client.Zrangebyscore("zs", 0, float64(i))
         if !reflect.DeepEqual(data, vals[0:i+1]) {
             t.Fatal("zrangebyscore failed")
         }
+        revData, _ := client.Zrevrangebyscore("zs", float64(i), 0)
+        if !reflect.DeepEqual(revData, valsInverse[4-i:5]) {
+            t.Fatal("zrevrangebyscore failed")
+        }
     }
+
     //incremement
     for i := 0; i <= 4; i++ {
         client.Zincrby("zs", vals[i], 1)
